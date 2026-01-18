@@ -11,7 +11,6 @@ import dev.nighter.celestCombat.language.MessageService;
 import dev.nighter.celestCombat.listeners.CombatListeners;
 import dev.nighter.celestCombat.listeners.EnderPearlListener;
 import dev.nighter.celestCombat.hooks.protection.WorldGuardHook;
-import dev.nighter.celestCombat.hooks.protection.GriefPreventionHook;
 import dev.nighter.celestCombat.listeners.ItemRestrictionListener;
 import dev.nighter.celestCombat.listeners.TridentListener;
 import dev.nighter.celestCombat.protection.NewbieProtectionManager;
@@ -46,14 +45,14 @@ public final class CelestCombat extends JavaPlugin {
     private DeathAnimationManager deathAnimationManager;
     private NewbieProtectionManager newbieProtectionManager;
     private WorldGuardHook worldGuardHook;
-    private GriefPreventionHook griefPreventionHook;
 
     public static boolean hasWorldGuard = false;
-    public static boolean hasGriefPrevention = false;
 
     @Override
     public void onEnable() {
         long startTime = System.currentTimeMillis();
+
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "combat:state");
         instance = this;
 
         saveDefaultConfig();
@@ -94,13 +93,6 @@ public final class CelestCombat extends JavaPlugin {
         }
 
         // GriefPrevention integration
-        if (hasGriefPrevention && getConfig().getBoolean("claim_protection.enabled", true)) {
-            griefPreventionHook = new GriefPreventionHook(this, combatManager);
-            getServer().getPluginManager().registerEvents(griefPreventionHook, this);
-            debug("GriefPrevention claim protection enabled");
-        } else if(hasGriefPrevention) {
-            getLogger().info("Found GriefPrevention but claim protection is disabled in config.");
-        }
 
         commandManager = new CommandManager(this);
         commandManager.registerCommands();
@@ -133,10 +125,6 @@ public final class CelestCombat extends JavaPlugin {
             worldGuardHook.cleanup();
         }
 
-        if (griefPreventionHook != null) {
-            griefPreventionHook.cleanup();
-        }
-
         if (killRewardManager != null) {
             killRewardManager.shutdown();
         }
@@ -152,11 +140,6 @@ public final class CelestCombat extends JavaPlugin {
         hasWorldGuard = isPluginEnabled("WorldGuard") && isWorldGuardAPIAvailable();
         if (hasWorldGuard) {
             getLogger().info("WorldGuard integration enabled successfully!");
-        }
-
-        hasGriefPrevention = isPluginEnabled("GriefPrevention") && isGriefPreventionAPIAvailable();
-        if (hasGriefPrevention) {
-            getLogger().info("GriefPrevention integration enabled successfully!");
         }
     }
 
@@ -174,14 +157,6 @@ public final class CelestCombat extends JavaPlugin {
         }
     }
 
-    private boolean isGriefPreventionAPIAvailable() {
-        try {
-            Class.forName("me.ryanhamshire.GriefPrevention.GriefPrevention");
-            return true;
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {
-            return false;
-        }
-    }
 
     private void setupBtatsMetrics() {
         Scheduler.runTask(() -> {
@@ -215,8 +190,5 @@ public final class CelestCombat extends JavaPlugin {
             worldGuardHook.cleanup();
         }
 
-        if (griefPreventionHook != null) {
-            griefPreventionHook.cleanup();
-        }
     }
 }

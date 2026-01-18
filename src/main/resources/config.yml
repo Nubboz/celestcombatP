@@ -222,7 +222,7 @@ safezone_protection:
 
   # Block type for the barrier
   # Set "BARRIER" for invisible but solid barrier
-  # Valid materials can be found at: https://jd.papermc.io/paper/1.21.5/org/bukkit/Material.html
+  # Valid materials can be found at: https://jd.papermc.io/paper/1.21.10/org/bukkit/Material.html
   barrier_material: "RED_STAINED_GLASS"
 
   # How close the player to borders before barriers appear
@@ -257,7 +257,7 @@ claim_protection:
 
   # Block type for the barrier around protected claims
   # Set "BARRIER" for invisible but solid barrier
-  # Valid materials can be found at: https://jd.papermc.io/paper/1.21.5/org/bukkit/Material.html
+  # Valid materials can be found at: https://jd.papermc.io/paper/1.21.10/org/bukkit/Material.html
   barrier_material: "BLUE_STAINED_GLASS"
 
   # How close the player needs to be to claim borders before barriers appear

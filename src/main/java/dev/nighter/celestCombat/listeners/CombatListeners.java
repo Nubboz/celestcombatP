@@ -165,9 +165,11 @@ public class CombatListeners implements Listener {
         // Handle newbie protection cleanup
         newbieProtectionManager.handlePlayerQuit(player);
 
+        String reason = event.getReason();
+
         if (combatManager.isInCombat(player)) {
             // Check if exempt_admin_kick is enabled and this was an admin kick
-            if (plugin.getConfig().getBoolean("combat.exempt_admin_kick", true)) {
+            if (!reason.toLowerCase().contains("spamming") && plugin.getConfig().getBoolean("combat.exempt_admin_kick", true)) {
 
                 // Don't punish, just remove from combat
                 Player opponent = combatManager.getCombatOpponent(player);

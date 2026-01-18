@@ -12,7 +12,7 @@ A comprehensive combat management plugin for Minecraft servers specializing in P
 
 ## Requirements
 
-- **Minecraft Version:** 1.21 - 1.21.4
+- **Minecraft Version:** 1.21 - 1.21.11
 - **Server Software:** Paper, Purpur, Folia
 - **Java Version:** 21+
 
