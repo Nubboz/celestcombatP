@@ -4,6 +4,7 @@ import dev.nighter.celestCombat.CelestCombat;
 import dev.nighter.celestCombat.Scheduler;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.io.ByteArrayOutputStream;
@@ -213,6 +214,7 @@ public class CombatManager {
                     } else {
                         // Player is offline, clean up
                         playersInCombat.remove(playerUUID);
+                        sendCombatState(player, false);
                         combatOpponents.remove(playerUUID);
                         Scheduler.Task task = combatTasks.remove(playerUUID);
                         if (task != null) {
@@ -260,7 +262,7 @@ public class CombatManager {
         boolean hasSpearCooldown = spearCooldowns.containsKey(playerUUID) &&
                 currentTime <= spearCooldowns.get(playerUUID);
 
-        if (!inCombat && !hasPearlCooldown && !hasTridentCooldown) {
+        if (!inCombat && !hasPearlCooldown && !hasTridentCooldown && !hasSpearCooldown) {
             return;
         }
 
@@ -327,7 +329,32 @@ public class CombatManager {
                     plugin.getMessageService().sendMessage(player, "combat_countdown", placeholders);
                 }
             }
-        } else if (hasPearlCooldown && hasTridentCooldown) {
+        }else if (hasPearlCooldown && hasSpearCooldown && hasTridentCooldown) {
+            int pearl = getRemainingEnderPearlCooldown(player, currentTime);
+            int trident = getRemainingTridentCooldown(player, currentTime);
+            int spear = getRemainingSpearCooldown(player, currentTime);
+
+            placeholders.put("pearl_time", String.valueOf(pearl));
+            placeholders.put("trident_time", String.valueOf(trident));
+            placeholders.put("spear_time", String.valueOf(spear));
+            plugin.getMessageService().sendMessage(player, "pearl_trident_spear_countdown", placeholders);
+        }
+        else if (hasPearlCooldown && hasSpearCooldown) {
+            int pearl = getRemainingEnderPearlCooldown(player, currentTime);
+            int spear = getRemainingSpearCooldown(player, currentTime);
+
+            placeholders.put("pearl_time", String.valueOf(pearl));
+            placeholders.put("spear_time", String.valueOf(spear));
+            plugin.getMessageService().sendMessage(player, "pearl_spear_countdown", placeholders);
+        }
+        else if (hasTridentCooldown && hasSpearCooldown) {
+            int trident = getRemainingTridentCooldown(player, currentTime);
+            int spear = getRemainingSpearCooldown(player, currentTime);
+
+            placeholders.put("trident_time", String.valueOf(trident));
+            placeholders.put("spear_time", String.valueOf(spear));
+            plugin.getMessageService().sendMessage(player, "trident_spear_countdown", placeholders);
+        }else if (hasPearlCooldown && hasTridentCooldown) {
             // Both pearl and trident cooldowns but no combat
             int remainingPearlTime = getRemainingEnderPearlCooldown(player, currentTime);
             int remainingTridentTime = getRemainingTridentCooldown(player, currentTime);
@@ -349,13 +376,11 @@ public class CombatManager {
                 placeholders.put("time", String.valueOf(remainingTridentTime));
                 plugin.getMessageService().sendMessage(player, "trident_only_countdown", placeholders);
             }
-        }
-        if (hasSpearCooldown) {
+        }else if (hasSpearCooldown) {
             int remainingSpearTime = getRemainingSpearCooldown(player, currentTime);
             if (remainingSpearTime > 0) {
                 placeholders.put("time", String.valueOf(remainingSpearTime));
                 plugin.getMessageService().sendMessage(player, "spear_only_countdown", placeholders);
-                spearCooldowns.remove(playerUUID);
             }
         }
     }
@@ -366,6 +391,7 @@ public class CombatManager {
         if (player.hasPermission("celestcombat.bypass.tag")) {
             return;
         }
+        sendCombatState(player, true);
 
         UUID playerUUID = player.getUniqueId();
         long newEndTime = System.currentTimeMillis() + (combatDurationSeconds * 1000L);
@@ -388,7 +414,6 @@ public class CombatManager {
 
         combatOpponents.put(playerUUID, attacker.getUniqueId());
         playersInCombat.put(playerUUID, newEndTime);
-        sendCombatState(player,true);
 
         // Cancel existing task if any
         Scheduler.Task existingTask = combatTasks.get(playerUUID);
@@ -409,13 +434,13 @@ public class CombatManager {
 
         UUID playerUUID = player.getUniqueId();
 
+        sendCombatState(player, false);
         if (!playersInCombat.containsKey(playerUUID)) {
             return; // Player is not in combat
         }
 
         playersInCombat.remove(playerUUID);
         combatOpponents.remove(playerUUID);
-        sendCombatState(player, false);
 
         Scheduler.Task task = combatTasks.remove(playerUUID);
         if (task != null) {
@@ -445,7 +470,7 @@ public class CombatManager {
         // No message is sent
     }
 
-    private void sendCombatState(Player player, boolean inCombat) {
+    public void sendCombatState(OfflinePlayer player, boolean inCombat) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(baos);
 
@@ -457,7 +482,7 @@ public class CombatManager {
             return;
         }
 
-        player.sendPluginMessage(plugin, "combat:state", baos.toByteArray());
+        plugin.getServer().sendPluginMessage(plugin, "combat:state", baos.toByteArray());
     }
 
     public Player getCombatOpponent(Player player) {
@@ -722,21 +747,12 @@ public class CombatManager {
     public void setSpearCooldown(Player player) {
         if (player == null) return;
 
-        // Only set cooldown if enabled in config
-        if (!spearEnabled) {
-            return;
-        }
+        if (!spearEnabled) return;
 
-        // Check world-specific settings
         String worldName = player.getWorld().getName();
-        if (worldSpearSettings.containsKey(worldName) && !worldSpearSettings.get(worldName)) {
-            return; // Don't set cooldown in this world
-        }
+        if (worldSpearSettings.containsKey(worldName) && !worldSpearSettings.get(worldName)) return;
 
-        // Check if we should only apply cooldown in combat
-        if (spearInCombatOnly && !isInCombat(player)) {
-            return;
-        }
+        if (spearInCombatOnly && !isInCombat(player)) return;
 
         spearCooldowns.put(player.getUniqueId(),
                 System.currentTimeMillis() + (spearCooldownSeconds * 1000L));
@@ -745,32 +761,21 @@ public class CombatManager {
     public boolean isSpearOnCooldown(Player player) {
         if (player == null) return false;
 
-        // If all spear cooldowns are disabled globally, always return false
-        if (!spearEnabled) {
-            return false;
-        }
+        if (!spearEnabled) return false;
 
-        // Check world-specific settings
         String worldName = player.getWorld().getName();
-        if (worldSpearSettings.containsKey(worldName) && !worldSpearSettings.get(worldName)) {
-            return false; // Cooldown disabled for this specific world
-        }
+        if (worldSpearSettings.containsKey(worldName) && !worldSpearSettings.get(worldName)) return false;
 
-        // Check if we should only apply cooldown in combat
-        if (spearInCombatOnly && !isInCombat(player)) {
-            return false;
-        }
+        if (spearInCombatOnly && !isInCombat(player)) return false;
 
-        UUID playerUUID = player.getUniqueId();
-        if (!spearCooldowns.containsKey(playerUUID)) {
-            return false;
-        }
+        UUID uuid = player.getUniqueId();
+        if (!spearCooldowns.containsKey(uuid)) return false;
 
-        long cooldownEndTime = spearCooldowns.get(playerUUID);
-        long currentTime = System.currentTimeMillis();
+        long end = spearCooldowns.get(uuid);
+        long now = System.currentTimeMillis();
 
-        if (currentTime > cooldownEndTime) {
-            spearCooldowns.remove(playerUUID);
+        if (now > end) {
+            spearCooldowns.remove(uuid);
             return false;
         }
 
@@ -780,7 +785,6 @@ public class CombatManager {
     public boolean isSpearBanned(Player player) {
         if (player == null) return false;
 
-        // Check world-specific ban settings
         String worldName = player.getWorld().getName();
         return worldSpearBannedSettings.getOrDefault(worldName, false);
     }
@@ -788,21 +792,19 @@ public class CombatManager {
     public void refreshCombatOnSpearLand(Player player) {
         if (player == null || !refreshCombatOnSpearLand) return;
 
-        // Only refresh if player is already in combat
         if (!isInCombat(player)) return;
 
-        UUID playerUUID = player.getUniqueId();
-        long newEndTime = System.currentTimeMillis() + (combatDurationSeconds * 1000L);
-        long currentEndTime = playersInCombat.getOrDefault(playerUUID, 0L);
+        UUID uuid = player.getUniqueId();
 
-        // Only extend the combat time, don't shorten it
-        if (newEndTime > currentEndTime) {
-            playersInCombat.put(playerUUID, newEndTime);
+        long newEnd = System.currentTimeMillis() + (combatDurationSeconds * 1000L);
+        long currentEnd = playersInCombat.getOrDefault(uuid, 0L);
 
-            // Debug message if debug is enabled
+        if (newEnd > currentEnd) {
+            playersInCombat.put(uuid, newEnd);
             plugin.debug("Refreshed combat time for " + player.getName() + " due to spear landing");
         }
     }
+
 
     public int getRemainingSpearCooldown(Player player) {
         return getRemainingSpearCooldown(player, System.currentTimeMillis());

@@ -1,9 +1,11 @@
 package dev.nighter.celestCombat;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.CompletableFuture;
@@ -41,45 +43,66 @@ public final class Scheduler {
     /**
      * Runs a task on the main thread (or global region in Folia).
      *
+     * @param plugin
      * @param runnable The task to run
      * @return A Task object representing the scheduled task
      */
-    public static Task runTask(Runnable runnable) {
+    public static Task runTask(Plugin plugin, Runnable runnable) {
         if (isFolia) {
             try {
                 io.papermc.paper.threadedregions.scheduler.ScheduledTask task =
-                        Bukkit.getGlobalRegionScheduler().run(plugin, scheduledTask -> runnable.run());
+                        Bukkit.getGlobalRegionScheduler().run(Scheduler.plugin, scheduledTask -> runnable.run());
                 return new Task(task);
             } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Error scheduling task in Folia", e);
+                Scheduler.plugin.getLogger().log(Level.SEVERE, "Error scheduling task in Folia", e);
                 return new Task(null);
             }
         } else {
-            return new Task(Bukkit.getScheduler().runTask(plugin, runnable));
+            return new Task(Bukkit.getScheduler().runTask(Scheduler.plugin, runnable));
         }
     }
 
     /**
      * Runs a task asynchronously.
      *
+     * @param plugin
      * @param runnable The task to run
      * @return A Task object representing the scheduled task
      */
-    public static Task runTaskAsync(Runnable runnable) {
+    public static Task runTaskAsync(Plugin plugin, Runnable runnable) {
         if (isFolia) {
             try {
                 io.papermc.paper.threadedregions.scheduler.ScheduledTask task =
-                        Bukkit.getAsyncScheduler().runNow(plugin, scheduledTask -> runnable.run());
+                        Bukkit.getAsyncScheduler().runNow(Scheduler.plugin, scheduledTask -> runnable.run());
                 return new Task(task);
             } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Error scheduling async task in Folia", e);
+                Scheduler.plugin.getLogger().log(Level.SEVERE, "Error scheduling async task in Folia", e);
                 return new Task(null);
             }
         } else {
-            return new Task(Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable));
+            return new Task(Bukkit.getScheduler().runTaskAsynchronously(Scheduler.plugin, runnable));
         }
     }
 
+    public static Object runTaskAsync2(Plugin plugin, Runnable task) {
+        if (!isFolia) {
+            BukkitTask bukkitTask = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    task.run();
+                }
+            }.runTaskAsynchronously(plugin);
+            return bukkitTask;
+        } else {
+            // folia scheduler
+            final ScheduledTask[] scheduled = new ScheduledTask[1];
+            plugin.getServer().getAsyncScheduler().runNow(plugin, t -> {
+                scheduled[0] = t; // store reference to cancel later
+                task.run();
+            });
+            return scheduled; // return array containing the ScheduledTask
+        }
+    }
     /**
      * Runs a task after a specified delay.
      *
@@ -195,10 +218,10 @@ public final class Scheduler {
                 return new Task(task);
             } catch (Exception e) {
                 plugin.getLogger().log(Level.WARNING, "Error scheduling entity task in Folia, falling back to global scheduler", e);
-                return runTask(runnable);
+                return runTask(plugin, runnable);
             }
         } else {
-            return runTask(runnable);
+            return runTask(plugin, runnable);
         }
     }
 
@@ -267,10 +290,10 @@ public final class Scheduler {
                 return new Task(task);
             } catch (Exception e) {
                 plugin.getLogger().log(Level.WARNING, "Error scheduling location task in Folia, falling back to global scheduler", e);
-                return runTask(runnable);
+                return runTask(plugin, runnable);
             }
         } else {
-            return runTask(runnable);
+            return runTask(plugin, runnable);
         }
     }
 
@@ -339,10 +362,10 @@ public final class Scheduler {
                 return new Task(task);
             } catch (Exception e) {
                 plugin.getLogger().log(Level.WARNING, "Error scheduling world task in Folia, falling back to global scheduler", e);
-                return runTask(runnable);
+                return runTask(plugin, runnable);
             }
         } else {
-            return runTask(runnable);
+            return runTask(plugin, runnable);
         }
     }
 

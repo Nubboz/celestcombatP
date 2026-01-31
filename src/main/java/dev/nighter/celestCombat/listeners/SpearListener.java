@@ -5,15 +5,11 @@ import dev.nighter.celestCombat.Scheduler;
 import dev.nighter.celestCombat.combat.CombatManager;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -36,7 +32,7 @@ public class SpearListener implements Listener {
     // Store original locations for riptide rollback
     private final Map<UUID, Location> spearOriginalLocations = new ConcurrentHashMap<>();
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = false)
     public void onSpearUse(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
@@ -54,40 +50,31 @@ public class SpearListener implements Listener {
             }
 
             // Handle riptide spears differently - we need to prevent the interaction entirely
-            if (item.containsEnchantment(Enchantment.RIPTIDE)) {
                 if (combatManager.isSpearOnCooldown(player)) {
                     event.setCancelled(true);
                     sendCooldownMessage(player);
                     return;
-                } else {
-                    // Store the player's location before riptide for potential rollback
-                    spearOriginalLocations.put(player.getUniqueId(), player.getLocation().clone());
                 }
-            } else {
-                // Handle non-riptide spears
-                if (combatManager.isSpearOnCooldown(player)) {
-                    event.setCancelled(true);
-                    sendCooldownMessage(player);
-                }
-            }
         }
     }
 
-    /*@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onLungeUse(Players event) {
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onLungeUse(SpearLungeEvent event) {
         Player player = event.getPlayer();
-
         // Check if spear usage is banned in this world
         if (combatManager.isSpearBanned(player)) {
+            event.setCancelled(true);
+
             sendBannedMessage(player);
-            rollbackLunge(player);
+            //rollbackLunge(player);
             return;
         }
 
         // Check if spear is on cooldown
         if (combatManager.isSpearOnCooldown(player)) {
+            event.setCancelled(true);
             sendCooldownMessage(player);
-            rollbackLunge(player);
+            //rollbackLunge(player);
             return;
         }
 
@@ -102,7 +89,7 @@ public class SpearListener implements Listener {
 
         // Clean up the stored location
         spearOriginalLocations.remove(player.getUniqueId());
-    }*/
+    }
 
 
     private void rollbackLunge(Player player) {
@@ -123,7 +110,7 @@ public class SpearListener implements Listener {
             }, 2L);
         } else {
             // Fallback: just stop their velocity and add effects
-            Scheduler.runTask(() -> {
+            Scheduler.runTask(plugin, () -> {
                 player.setVelocity(player.getVelocity().multiply(0));
             });
         }

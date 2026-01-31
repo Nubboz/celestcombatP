@@ -149,7 +149,7 @@ public class KillRewardManager {
             }
         } else {
             // Save asynchronously during normal operation
-            Scheduler.runTaskAsync(() -> {
+            Scheduler.runTaskAsync(plugin, () -> {
                 try {
                     cooldownConfig.save(cooldownFile);
                     plugin.debug("Saved kill reward cooldowns to file");
@@ -227,7 +227,7 @@ public class KillRewardManager {
         AtomicBoolean anyCommandSuccessful = new AtomicBoolean(false);
 
         // Execute commands on main thread
-        Scheduler.runTask(() -> {
+        Scheduler.runTask(plugin, () -> {
             for (String command : rewardCommands) {
                 String processedCommand = command
                         .replace("%killer%", killer.getName())

@@ -63,6 +63,9 @@ combat:
 
   # If true, players kicked/banned by admins won't be punished (killed) for combat logging
   exempt_admin_kick: true
+  # players punished if kick message includes key strings
+  exempt_kick_exception:
+    - "spamming"
 
   # Disable flight (Creative fly) during combat
   disable_flight: false
@@ -112,6 +115,36 @@ trident:
 # Trident cooldown configuration
 trident_cooldown:
   # Enable/disable trident cooldowns globally
+  enabled: true
+
+  # Cooldown duration (supports: s, m, h, d for seconds, minutes, hours, days)
+  duration: "10s"
+
+  # Only apply cooldown when player is in combat
+  in_combat_only: true
+
+  # Per-world cooldown settings (overrides global enabled setting)
+  worlds:
+    world: true          # Enable cooldown in overworld
+    world_nether: false  # Disable cooldown in nether
+    world_the_end: true  # Enable cooldown in end
+    # Add more worlds as needed
+
+#---------------------------------------------------
+#              SPEAR RESTRICTIONS
+#---------------------------------------------------
+spear:
+  # Refresh combat timer when spear lands (similar to enderpearl)
+  refresh_combat_on_land: false
+
+  # Worlds where spears are completely banned
+  banned_worlds:
+    world_nether: true # Example: spears banned in the nether
+    # Add more worlds as needed
+
+# Spear cooldown configuration
+spear_cooldown:
+  # Enable/disable spear cooldowns globally
   enabled: true
 
   # Cooldown duration (supports: s, m, h, d for seconds, minutes, hours, days)

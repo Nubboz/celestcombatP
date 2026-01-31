@@ -57,6 +57,20 @@ trident_only_countdown:
   action_bar: "&#4FC3F7Trident cooldown: &#FFFFFF%time%s"
 
 # ------------------------------------------------------
+#                spear messages
+# ------------------------------------------------------
+spear_banned:
+  message: "&cSpears are banned in this world!"
+  sound: block.note_block.pling
+
+spear_cooldown:
+  action_bar: "&#4FC3F7Spear is on cooldown!"
+  sound: block.note_block.pling
+
+spear_only_countdown:
+  action_bar: "&#4FC3F7Spear cooldown: &#FFFFFF%time%s"
+
+# ------------------------------------------------------
 #              Combined countdown messages
 # ------------------------------------------------------
 combat_pearl_trident_countdown:
@@ -67,6 +81,29 @@ combat_trident_countdown:
 
 pearl_trident_countdown:
   action_bar: "&#E94E77Pearl: &#FFFFFF%pearl_time%s &#8B8B8B| &#4FC3F7Trident: &#FFFFFF%trident_time%s"
+
+# Spear combinations
+combat_spear_countdown:
+  action_bar: "&#4A90E2Combat: &#FFFFFF%combat_time%s &#8B8B8B| &#F39C12Spear: &#FFFFFF%spear_time%s"
+
+combat_pearl_spear_countdown:
+  action_bar: "&#4A90E2Combat: &#FFFFFF%combat_time%s &#8B8B8B| &#E94E77Pearl: &#FFFFFF%pearl_time%s &#8B8B8B| &#F39C12Spear: &#FFFFFF%spear_time%s"
+
+combat_trident_spear_countdown:
+  action_bar: "&#4A90E2Combat: &#FFFFFF%combat_time%s &#8B8B8B| &#4FC3F7Trident: &#FFFFFF%trident_time%s &#8B8B8B| &#F39C12Spear: &#FFFFFF%spear_time%s"
+
+pearl_spear_countdown:
+  action_bar: "&#E94E77Pearl: &#FFFFFF%pearl_time%s &#8B8B8B| &#F39C12Spear: &#FFFFFF%spear_time%s"
+
+trident_spear_countdown:
+  action_bar: "&#4FC3F7Trident: &#FFFFFF%trident_time%s &#8B8B8B| &#F39C12Spear: &#FFFFFF%spear_time%s"
+
+combat_pearl_trident_spear_countdown:
+  action_bar: "&#4A90E2Combat: &#FFFFFF%combat_time%s &#8B8B8B| &#E94E77Pearl: &#FFFFFF%pearl_time%s &#8B8B8B| &#4FC3F7Trident: &#FFFFFF%trident_time%s &#8B8B8B| &#F39C12Spear: &#FFFFFF%spear_time%s"
+
+pearl_trident_spear_countdown:
+    action_bar: "&#E94E77Pearl: &#FFFFFF%pearl_time%s &#8B8B8B| &#4FC3F7Trident: &#FFFFFF%trident_time%s &#8B8B8B| &#F39C12Spear: &#FFFFFF%spear_time%s"
+
 
 # ------------------------------------------------------
 #                Kill reward messages

@@ -1,8 +1,9 @@
 name: CelestCombat
-version: '${version}'
+version: '${project.version}'
 main: dev.nighter.celestCombat.CelestCombat
 api-version: '1.21'
-authors: [ Nighter ]
+authors: [ Nighter, Nubb ]
+softdepend: [ProtocolLib]
 description: A simple combat logging plugin
 folia-supported: true
 

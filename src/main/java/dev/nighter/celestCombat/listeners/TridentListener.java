@@ -172,7 +172,7 @@ public class TridentListener implements Listener {
             }, 2L);
         } else {
             // Fallback: just stop their velocity and add effects
-            Scheduler.runTask(() -> {
+            Scheduler.runTask(plugin, () -> {
                 player.setVelocity(player.getVelocity().multiply(0));
             });
         }

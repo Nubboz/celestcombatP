@@ -1,5 +1,6 @@
 package dev.nighter.celestCombat;
 
+import com.comphenix.protocol.ProtocolManager;
 import com.sk89q.worldguard.WorldGuard;
 import dev.nighter.celestCombat.bstats.Metrics;
 import dev.nighter.celestCombat.combat.CombatManager;
@@ -8,11 +9,8 @@ import dev.nighter.celestCombat.commands.CommandManager;
 import dev.nighter.celestCombat.configs.TimeFormatter;
 import dev.nighter.celestCombat.language.LanguageManager;
 import dev.nighter.celestCombat.language.MessageService;
-import dev.nighter.celestCombat.listeners.CombatListeners;
-import dev.nighter.celestCombat.listeners.EnderPearlListener;
+import dev.nighter.celestCombat.listeners.*;
 import dev.nighter.celestCombat.hooks.protection.WorldGuardHook;
-import dev.nighter.celestCombat.listeners.ItemRestrictionListener;
-import dev.nighter.celestCombat.listeners.TridentListener;
 import dev.nighter.celestCombat.protection.NewbieProtectionManager;
 import dev.nighter.celestCombat.rewards.KillRewardManager;
 import dev.nighter.celestCombat.updates.ConfigUpdater;
@@ -42,6 +40,7 @@ public final class CelestCombat extends JavaPlugin {
     private CombatListeners combatListeners;
     private EnderPearlListener enderPearlListener;
     private TridentListener tridentListener;
+    private SpearListener spearListener;
     private DeathAnimationManager deathAnimationManager;
     private NewbieProtectionManager newbieProtectionManager;
     private WorldGuardHook worldGuardHook;
@@ -81,8 +80,21 @@ public final class CelestCombat extends JavaPlugin {
         tridentListener = new TridentListener(this, combatManager);
         getServer().getPluginManager().registerEvents(tridentListener, this);
 
-        getServer().getPluginManager().registerEvents(new ItemRestrictionListener(this, combatManager), this);
 
+
+        spearListener = new SpearListener(this, combatManager);
+        getServer().getPluginManager().registerEvents(spearListener, this);
+
+
+        ItemRestrictionListener itemListener = new ItemRestrictionListener(this, combatManager);
+        getServer().getPluginManager().registerEvents(itemListener, this);
+
+        if (Bukkit.getServer().getPluginManager().getPlugin("ProtocolLib") != null) {
+
+            ProtocolManager protocolManager = com.comphenix.protocol.ProtocolLibrary.getProtocolManager();
+            itemListener.registerPacketListener(protocolManager);
+            getLogger().info("Protocollib installed.");
+        }
         // WorldGuard integration
         if (hasWorldGuard && getConfig().getBoolean("safezone_protection.enabled", true)) {
             worldGuardHook = new WorldGuardHook(this, combatManager);
@@ -119,6 +131,10 @@ public final class CelestCombat extends JavaPlugin {
 
         if (tridentListener != null) {
             tridentListener.shutdown();
+        }
+
+        if (spearListener != null) {
+            spearListener.shutdown();
         }
 
         if (worldGuardHook != null) {
@@ -159,7 +175,7 @@ public final class CelestCombat extends JavaPlugin {
 
 
     private void setupBtatsMetrics() {
-        Scheduler.runTask(() -> {
+        Scheduler.runTask(this, () -> {
             Metrics metrics = new Metrics(this, 25387);
         });
     }

@@ -207,7 +207,7 @@ public class NewbieProtectionManager {
             }
         } else {
             // Save asynchronously during normal operation
-            Scheduler.runTaskAsync(() -> {
+            Scheduler.runTaskAsync(plugin, () -> {
                 try {
                     protectionConfig.save(protectionFile);
                     plugin.debug("Saved newbie protection data to file");
@@ -497,7 +497,7 @@ public class NewbieProtectionManager {
                     iterator.remove();
 
                     // Remove boss bar on main thread
-                    Scheduler.runTask(() -> {
+                    Scheduler.runTask(plugin, () -> {
                         BossBar bossBar = protectionBossBars.remove(playerUUID);
                         if (bossBar != null) {
                             bossBar.removeAll();

@@ -154,6 +154,8 @@ public class CombatListeners implements Listener {
 
         } else {
             playerLoggedOutInCombat.put(player.getUniqueId(), false);
+
+            combatManager.sendCombatState(player, false);
         }
     }
 
@@ -166,10 +168,15 @@ public class CombatListeners implements Listener {
         newbieProtectionManager.handlePlayerQuit(player);
 
         String reason = event.getReason();
+        combatManager.sendCombatState(player, false);
 
         if (combatManager.isInCombat(player)) {
             // Check if exempt_admin_kick is enabled and this was an admin kick
-            if (!reason.toLowerCase().contains("spamming") && plugin.getConfig().getBoolean("combat.exempt_admin_kick", true)) {
+            List<String> exceptions = plugin.getConfig().getStringList("combat.exempt_kick_exception");
+            boolean punish = exceptions.stream().anyMatch(s -> {
+                return reason.toLowerCase().contains(s.toLowerCase());
+            });
+            if (!punish && plugin.getConfig().getBoolean("combat.exempt_admin_kick", true)) {
 
                 // Don't punish, just remove from combat
                 Player opponent = combatManager.getCombatOpponent(player);
@@ -262,6 +269,8 @@ public class CombatListeners implements Listener {
             lastDamageTime.remove(victimId);
         } else {
             // Player died outside of combat
+
+            combatManager.sendCombatState(victim, false);
             deathAnimationManager.performDeathAnimation(victim, null);
 
             // Clean up any stale damage tracking
@@ -276,6 +285,7 @@ public class CombatListeners implements Listener {
         UUID playerUUID = player.getUniqueId();
 
         // Handle newbie protection for new players
+        combatManager.sendCombatState(player, false);
         newbieProtectionManager.handlePlayerJoin(player);
 
         if (playerLoggedOutInCombat.containsKey(playerUUID)) {

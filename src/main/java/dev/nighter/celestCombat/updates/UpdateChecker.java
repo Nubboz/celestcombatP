@@ -259,7 +259,7 @@ public class UpdateChecker implements Listener {
                 // Re-check for updates when an operator joins, but only if we haven't found an update yet
                 checkForUpdates().thenAccept(hasUpdate -> {
                     if (hasUpdate) {
-                        Scheduler.runTask(() -> {
+                        Scheduler.runTask(plugin, () -> {
                             sendUpdateNotification(player);
                             notifiedPlayers.put(playerId, today); // Mark as notified after sending
                         });

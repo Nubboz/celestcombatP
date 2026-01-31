@@ -1,5 +1,6 @@
 package dev.nighter.celestCombat.hooks.protection;
 
+import com.comphenix.protocol.PacketType;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
@@ -179,11 +180,8 @@ public class WorldGuardHook implements Listener {
 
         // Check if enabled in this world
         if (!isEnabledInWorld(player.getWorld())) return;
-
-        if (combatManager.isInCombat(player)) {
-            combatPlayerPearls.put(event.getEntity().getUniqueId(), player.getUniqueId());
-            pearlThrowLocations.put(player.getUniqueId(), new PearlLocationData(player.getLocation()));
-        }
+        combatPlayerPearls.put(event.getEntity().getUniqueId(), player.getUniqueId());
+        pearlThrowLocations.put(player.getUniqueId(), new PearlLocationData(player.getLocation()));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -193,16 +191,17 @@ public class WorldGuardHook implements Listener {
         Location hitLocation = event.getEntity().getLocation();
         if (!isEnabledInWorld(hitLocation)) return;
 
+
         UUID projectileId = event.getEntity().getUniqueId();
         UUID playerUUID = combatPlayerPearls.remove(projectileId);
-        if (playerUUID == null) return;
+        Player plr = plugin.getServer().getPlayer(playerUUID);
+        if (!combatManager.isInCombat(plr)) return;
 
-        Player player = plugin.getServer().getPlayer(playerUUID);
         Location teleportDestination = calculateTeleportDestination(event, event.getEntity());
 
         if (isSafeZone(teleportDestination)) {
             event.setCancelled(true);
-            handlePearlTeleportBack(player, playerUUID);
+            handlePearlTeleportBack(plr, playerUUID);
         }
 
         pearlThrowLocations.remove(playerUUID);

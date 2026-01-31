@@ -6,7 +6,7 @@
 
     <groupId>dev.nighter</groupId>
     <artifactId>CelestCombat</artifactId>
-    <version>1.0</version>
+    <version>1.1.2</version>
     <packaging>jar</packaging>
 
     <name>CelestCombat</name>
@@ -49,6 +49,12 @@
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
             <version>7.0.13-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.dmulloy2</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>5.4.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
